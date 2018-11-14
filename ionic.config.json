@@ -1,5 +1,7 @@
 {
   "name": "geoTracker",
-  "integrations": {},
+  "integrations": {
+    "cordova": {}
+  },
   "type": "ionic-angular"
 }

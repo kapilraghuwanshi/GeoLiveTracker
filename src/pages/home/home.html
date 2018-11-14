@@ -1,14 +1,37 @@
 <ion-header>
   <ion-navbar>
     <ion-title>
-      Ionic Blank
+      Geo Tracker
     </ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding>
-  The world is your oyster.
-  <p>
-    If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
-  </p>
+
+  <div id="floating-panel">
+    <ion-grid>
+      <ion-row>
+        <ion-col text-left>
+          <button ion-button small (click)="fetchCurrentLocation()">PickUp Location</button>
+          <input type="text" [(ngModel)]="startLatLang">
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col text-left>
+          <button ion-button small (click)="fetchDropLocation()">DropOff Location</button>
+          <input type="text" [(ngModel)]="endLatLang">
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col text-left>
+          <button ion-button outline small (click)="calculateAndDisplayRoute()">Check Path</button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+  </div>
+
+  <div #map id="map">
+  </div>
+
 </ion-content>
