@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { NavController } from 'ionic-angular';
-import { Geolocation } from '@ionic-native/geolocation';
+import { Geolocation, Geoposition } from '@ionic-native/geolocation';
 
 declare var google: any;
 
@@ -45,6 +45,13 @@ export class HomePage {
       this.map.setCenter(this.startLatLang);
       this.map.setZoom(10);
       console.log('Pick latLng location', this.startLatLang);
+      this.startMarker = new google.maps.Marker({
+        position: this.startLatLang,
+        title: "PickUp",
+        icon: { url: "assets/icon/PickUp.png", scaledSize: new google.maps.Size(25, 40) },
+        map: this.map,
+        animation: google.maps.Animation.DROP
+      });
     }).catch((error) => {
       console.log('Error getting location', error);
     });
@@ -56,6 +63,13 @@ export class HomePage {
       this.map.setCenter(this.endLatLang);
       this.map.setZoom(8);
       console.log('Drop latLng location', this.endLatLang);
+      this.stopMarker = new google.maps.Marker({
+        position: this.endLatLang,
+        title: "DropOff",
+        icon: { url: "assets/icon/DropOff.png", scaledSize: new google.maps.Size(25, 40) },
+        map: this.map,
+        animation: google.maps.Animation.DROP
+      });
     }).catch((error) => {
       console.log('Error getting location', error);
     });
@@ -74,55 +88,40 @@ export class HomePage {
       }
     });
 
-    this.startMarker = new google.maps.Marker({
-      position: this.startLatLang,
-      title: "PickUp",
-      icon: { url: "assets/icon/PickUp.png", scaledSize: new google.maps.Size(25, 40) },
-      map: this.map,
-      animation: google.maps.Animation.DROP
-    });
-
-    this.stopMarker = new google.maps.Marker({
-      position: this.endLatLang,
-      title: "DropOff",
-      icon: { url: "assets/icon/DropOff.png", scaledSize: new google.maps.Size(25, 40) },
-      map: this.map,
-      animation: google.maps.Animation.DROP
-    });
-
     this.startMarker.setMap(this.map);
     this.stopMarker.setMap(this.map);
   }
 
   liveTrack() {
-    let watch = this.geolocation.watchPosition(this.options);
-    watch.subscribe(position => {
-      console.log(position.coords.longitude + ' & ' + position.coords.latitude);
-      this.startLatLang = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-      console.log(this.startLatLang);
-      this.map.setCenter(this.startLatLang);
-      this.map.setZoom(10);
-      //if (this.startMarker) {
-      // Marker already created - Move it
-      this.startMarker = new google.maps.Marker({
-        position: this.startLatLang,
-        title: "Moving from PickUp",
-        map: this.map
+    let watch = this.geolocation.watchPosition(this.options)
+      .subscribe((position: Geoposition) => {
+        console.log(position.coords.longitude + ' & ' + position.coords.latitude);
+        this.startLatLang = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        console.log("inside live track" + this.startLatLang);
+        this.map.setCenter(this.startLatLang);
+        this.map.setZoom(9);
+        //if (this.startMarker) {
+        // Marker already created - Move it
+        this.startMarker = new google.maps.Marker({
+          position: this.startLatLang,
+          title: "Moving from PickUp",
+          map: this.map,
+          icon: { url: "assets/icon/Byk.png", scaledSize: new google.maps.Size(40, 40) },
+        });
+        this.startMarker.setMap(this.map);
+        //this.startMarker.setPosition(this.startLatLang);
+        //}
+        // else {
+        //   // Marker does not exist - Create it
+        //   this.startMarker = new google.maps.Marker({
+        //     position: this.startLatLang,
+        //     map: this.map,
+        //     animation: google.maps.Animation.DROP,
+        //     title: "Moving towards destination",
+        //     icon: { url: "assets/icon/PickUp.png", scaledSize: new google.maps.Size(25, 40) },
+        //   });
+        // }
       });
-      this.startMarker.setMap(this.map);
-      //this.startMarker.setPosition(this.startLatLang);
-      //}
-      // else {
-      //   // Marker does not exist - Create it
-      //   this.startMarker = new google.maps.Marker({
-      //     position: this.startLatLang,
-      //     map: this.map,
-      //     animation: google.maps.Animation.DROP,
-      //     title: "Moving towards destination",
-      //     icon: { url: "assets/icon/PickUp.png", scaledSize: new google.maps.Size(25, 40) },
-      //   });
-      // }
-    });
     //To stop notifications
     //watch.unsubscribe();
   }
