@@ -1,6 +1,7 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, NgZone } from '@angular/core';
 import { NavController } from 'ionic-angular';
 import { Geolocation, Geoposition } from '@ionic-native/geolocation';
+import 'rxjs/add/operator/filter';
 
 declare var google: any;
 
@@ -16,6 +17,7 @@ export class HomePage {
   stopMarker: any;
   startLatLang: any;
   endLatLang: any;
+  moveLatLang: any;
   directionsService = new google.maps.DirectionsService;
   directionsDisplay = new google.maps.DirectionsRenderer({ suppressMarkers: true });
   options = {
@@ -24,7 +26,7 @@ export class HomePage {
     maximumAge: 0
   };
 
-  constructor(public navCtrl: NavController, private geolocation: Geolocation) {
+  constructor(public navCtrl: NavController, private geolocation: Geolocation, private zone: NgZone) {
   }
 
   ionViewDidLoad() {
@@ -94,22 +96,28 @@ export class HomePage {
 
   liveTrack() {
     let watch = this.geolocation.watchPosition(this.options)
+      .filter((position: Geoposition) => position.coords !== undefined) //Filter Out Errors
       .subscribe((position: Geoposition) => {
         console.log(position.coords.longitude + ' & ' + position.coords.latitude);
-        this.startLatLang = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-        console.log("inside live track" + this.startLatLang);
-        this.map.setCenter(this.startLatLang);
+        this.moveLatLang = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        console.log("inside live track" + this.moveLatLang);
+        this.map.setCenter(this.moveLatLang);
         this.map.setZoom(9);
+        this.zone.run(() => {
+          this.moveLatLang = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+          console.log("inside ngZone live track" + this.moveLatLang);
+        });
         //if (this.startMarker) {
         // Marker already created - Move it
         this.startMarker = new google.maps.Marker({
-          position: this.startLatLang,
+          position: this.moveLatLang,
           title: "Moving from PickUp",
           map: this.map,
           icon: { url: "assets/icon/Byk.png", scaledSize: new google.maps.Size(40, 40) },
+          animation: google.maps.Animation.DROP
         });
-        this.startMarker.setMap(this.map);
-        //this.startMarker.setPosition(this.startLatLang);
+        //this.startMarker.setMap(this.map);
+        this.startMarker.setPosition(this.moveLatLang);
         //}
         // else {
         //   // Marker does not exist - Create it
@@ -123,7 +131,7 @@ export class HomePage {
         // }
       });
     //To stop notifications
-    //watch.unsubscribe();
+    watch.unsubscribe();
   }
 
 
